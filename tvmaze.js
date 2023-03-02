@@ -1,6 +1,6 @@
 "use strict";
 
-const tvmazeBaseURL = "http://api.tvmaze.com/search/shows"; // TODO: further base?
+const TV_MAZE_BASE_URL = "http://api.tvmaze.com/";
 const $showsList = $("#showsList");
 const $episodesArea = $("#episodesArea");
 const $searchForm = $("#searchForm");
@@ -12,30 +12,29 @@ const $searchForm = $("#searchForm");
  *    (if no image URL given by API, put in a default image URL)
  */
 
+/** Given a show query, get from API and return (promise) array of episodes:
+ *      { id, name, season, number }
+ */
 async function getShowsByTerm(searchQuery) {
-  // ADD: Remove placeholder & make request to TVMaze search shows API.
   // make request
-  const response = await axios.get(tvmazeBaseURL, {
-    params: { q: searchQuery },
-  });
+  const response = await axios.get(
+    `${TV_MAZE_BASE_URL}/search/shows`,
+    { params: { q: searchQuery }}
+  );
+
 
   const prunedShows = response.data.map((showData) => {
     //why do we need .data here? not visible in Insom
 
-    const placeholderImg =
+    const placeholderImg =  // Could be a global const
       "https://upload.wikimedia.org/wikipedia/commons/1/14/No_Image_Available.jpg?20200913095930";
     let show = {
       id: showData.show.id,
       name: showData.show.name,
       summary: showData.show.summary,
-      image: placeholderImg,
+      image: showData.show.image ? showData.show.image.medium : placeholderImg
     };
 
-
-    if (showData.show.image) {
-      if (showData.show.image.medium) show.image = showData.show.image.medium;
-      else if (showData.show.image.original) show.image = showData.show.image.original;
-    }
 
     return show;
   });
@@ -43,19 +42,8 @@ async function getShowsByTerm(searchQuery) {
   return prunedShows;
 }
 
-// || 'https://upload.wikimedia.org/wikipedia/commons/1/14/No_Image_Available.jpg?20200913095930'
-/*
-   map the array that returns to only have:
-     return {
 
-      id: show.id
-      name: show.name
-      summary: show.summary
-      image: show.image.medium
-    }
-    */
 /** Given list of shows, create markup for each and to DOM */
-//get alt text?
 function populateShows(shows) {
   $showsList.empty();
 
@@ -66,7 +54,7 @@ function populateShows(shows) {
          <div class="media">
            <img
               src=${show.image}
-              alt="Bletchly Circle San Francisco"
+              alt=${show.name}
               class="w-25 me-3">
            <div class="media-body">
              <h5 class="text-primary">${show.name}</h5>
@@ -96,37 +84,12 @@ async function searchForShowAndDisplay() {
   populateShows(shows);
 }
 
+
 $searchForm.on("submit", async function (evt) {
-  // TODO: Refactor to separate function
   evt.preventDefault();
   await searchForShowAndDisplay();
 });
 
-/** Given a show ID, get from API and return (promise) array of episodes:
- *      { id, name, season, number }
- */
 
-// async function getEpisodesOfShow(id) { }
 
-/** Write a clear docstring for this function... */
 
-// function populateEpisodes(episodes) { }
-
-// return [
-//   {
-//     id: 1767,  //     TODO: Make sure each show has id
-//     name: "The Bletchley Circle",
-//     summary:
-//       `<p><b>The Bletchley Circle</b> follows the journey of four ordinary
-//          women with extraordinary skills that helped to end World War II.</p>
-//        <p>Set in 1952, Susan, Millie, Lucy and Jean have returned to their
-//          normal lives, modestly setting aside the part they played in
-//          producing crucial intelligence, which helped the Allies to victory
-//          and shortened the war. When Susan discovers a hidden code behind an
-//          unsolved murder she is met by skepticism from the police. She
-//          quickly realises she can only begin to crack the murders and bring
-//          the culprit to justice with her former friends.</p>`,
-//     image:
-//         "http://static.tvmaze.com/uploads/images/medium_portrait/147/369403.jpg"
-//   }
-// ]
