@@ -23,8 +23,6 @@ async function getShowsByTerm(searchQuery) {
     params: { q: searchQuery },
   });
 
-  console.log(response);
-
   const prunedShows = response.data.map((showData) => {
     //why do we need .data here? not visible in Insom
 
@@ -61,6 +59,10 @@ function populateShows(shows) {
              <button class="btn btn-outline-light btn-sm Show-getEpisodes">
                Episodes
              </button>
+             <section id="${show.id}-epArea">
+             <ul id="${show.id}-epList">
+             </ul>
+             </section>
            </div>
          </div>
        </div>
@@ -86,6 +88,8 @@ async function searchForShowAndDisplay() {
 $searchForm.on("submit", async function (evt) {
   evt.preventDefault();
   await searchForShowAndDisplay();
+  // calls our function for adding event listener to episode buttons
+  addEpisodesButtonListener();
 });
 
 // event listener on episodes  -- pass the id of the
@@ -111,7 +115,6 @@ async function getEpisodesOfShow(id) {
       number: epData.number,
     };
   });
-  console.log({prunedEpisodes});
   return prunedEpisodes;
 }
   // return [
@@ -127,34 +130,58 @@ async function getEpisodesOfShow(id) {
 
 //TODO: START HERE
 
-$('Show-getButton').on("click", function (evt){
- const $button =  $(evt.target);
- console.log($button)
-const $showID = $button.closest(".Show").attr('data-show-id');
-console.log('showID', $showID);
-//  await getEpisodesOfShow();
-
-})
+// buton function
+// after wards controller fx
 
 
-let $button = $('button');
-$button.on("click", function(evt){
-  const epButton = $(evt.target);
-  console.log(epButton);
-})
+// if (episode display: inline)
+
+function addEpisodesButtonListener () {
+  $(".Show-getEpisodes").on("click", handleEpisodesClick)
+}
+
+async function handleEpisodesClick (evt) {
+  console.log("I'm clicked");
+  const $button = $(evt.target);
+  // get the id of the show from the closest div data-show-id
+  const $showID = $button.closest(".Show").data("show-id");
+  console.log($showID);
+  // call episodes of show with id
+  const episodes = await getEpisodesOfShow($showID);
+  // call populate shows with the array of episodes
+  populateEpisodes(episodes, $showID);
+}
+
+
+
+  // const $button =  $(evt.target);
+  // console.log($button)
+  //
+  // console.log('showID', $showID);
+  // await populateShows;
+
+
+
+// let $button = $('button');
+// $button.on("click", function(evt){
+//   const epButton = $(evt.target);
+//   console.log(epButton);
+// })
 
 
 
 /** Write a clear docstring for this function... */
 
-function populateEpisodes(episodes) {
+function populateEpisodes(episodes, id) {
+  const $currEpList = $(`#${id}-epList`);
+  const $currEpArea = $(`#${id}-epArea`);
   for (let episode of episodes) {
-    const $epi = $(`<li>${episode.name} (season ${episode.season}, number ${episode.number})</li>`);
-    console.log({$epi});
-   $episodesList.append($epi);
+    // console.log(episode);
+    const epi = `<li>${episode.name} (season ${episode.season}, number ${episode.number})</li>`;
+    console.log(epi);
+   $currEpList.append(epi);
   }
-
-  $episodesArea.show(); //better here or in on("click")?;
+  $currEpArea.show().css("display", "block"); //better here or in on("click")?;
 }
 
 
